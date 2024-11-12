@@ -634,13 +634,10 @@ function setupShaders() {
             
             vec4 textureColor = texture2D(uSampler, vUVPos);
 
-            switch (blendingMode) {
-                case 0:
-                    gl_FragColor = textureColor;
-                    break;
-                case 1:
-                    gl_FragColor = textureColor * lightingColor;
-                    break;
+            if (blendingMode == 0) {
+                gl_FragColor = textureColor;
+            } else if (blendingMode == 1) {
+                gl_FragColor = textureColor * lightingColor;
             }
         }
     `;
