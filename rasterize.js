@@ -451,7 +451,7 @@ function loadModels() {
                 image.crossOrigin = "Anonymous";
                 image.src = inputTriangles[whichSet].material.texture;
                 gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
-                inputTriangles[whichSet].texture = texture;
+                inputTriangles[whichSet].textureObject = texture;
 
                 // send the triangle indices to webGL
                 triangleBuffers.push(gl.createBuffer()); // init empty triangle index buffer
@@ -502,6 +502,30 @@ function loadModels() {
                     
         
                     triSetSizes.push(ellipsoidModel.triangles.length);
+
+                    // Create the texture object for this triangle set.
+                    const texture = gl.createTexture();
+                    const image = new Image();
+                    // Make placeholder texture
+                    gl.bindTexture(gl.TEXTURE_2D, texture);
+                    const level=0, internalFormat=gl.RGBA, srcFormat=gl.RGBA, srcType=gl.UNSIGNED_BYTE;
+                    gl.texImage2D(gl.TEXTURE_2D,level,internalFormat,1,1,0,srcFormat,srcType,new Uint8Array([0,0,0,255])); // black
+                    // When correct texture loads.
+                    image.onload = () => {
+                        gl.bindTexture(gl.TEXTURE_2D, texture);
+                        gl.texImage2D(gl.TEXTURE_2D,level,internalFormat,srcFormat,srcType,image);
+                        if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+                            gl.generateMipmap(gl.TEXTURE_2D);
+                        } else {
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                        }
+                    };
+                    image.crossOrigin = "Anonymous";
+                    image.src = ellipsoid.texture;
+                    gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+                    ellipsoid.textureObject = texture;
     
                     // send the triangle indices to webGL
                     triangleBuffers.push(gl.createBuffer()); // init empty triangle index buffer
@@ -733,7 +757,7 @@ function renderModels() {
         gl.uniform1f(shininessULoc,currSet.material.n); // pass in the specular exponent
         
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, currSet.texture);
+        gl.bindTexture(gl.TEXTURE_2D, currSet.textureObject);
         gl.uniform1i(samplerULoc,0); // pass in the sampler
         
         // vertex buffer: activate and feed into vertex shader
@@ -769,7 +793,7 @@ function renderModels() {
         gl.uniform1f(shininessULoc,ellipsoid.n); // pass in the specular exponent
         
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, currSet.texture);
+        gl.bindTexture(gl.TEXTURE_2D, currSet.textureObject);
         gl.uniform1i(samplerULoc,0); // pass in the sampler
 
         gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[numTriangleSets+whichEllipsoid]); // activate vertex buffer
