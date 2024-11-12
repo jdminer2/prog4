@@ -45,7 +45,7 @@ var Center = vec3.clone(defaultCenter); // view direction in world space
 var Up = vec3.clone(defaultUp); // view up vector in world space
 
 var blendingMode = 0;
-const MAX_BLENDING_MODE = 1;
+const MAX_BLENDING_MODE = 2;
 
 // ASSIGNMENT HELPER FUNCTIONS
 
@@ -640,6 +640,8 @@ function setupShaders() {
                 gl_FragColor = textureColor;
             } else if (blendingMode == 1) {
                 gl_FragColor = textureColor * lightingColor;
+            } else if (blendingMode == 2) {
+                gl_FragColor = lightingColor;
             }
             gl_FragColor *= uAlpha;
         }
