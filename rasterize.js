@@ -328,6 +328,14 @@ function loadModels() {
                             return(2/(currEllipsoid.c*currEllipsoid.c) * (val-currEllipsoid.z));
                     } // end switch
                 }); 
+
+                // Not sure the correct way to put a texture on an ellipsoid. Just doing something really incorrect here.
+                var ellipsoidUVPositions = [];
+                ellipsoidVertices.forEach((x,i) => {
+                    if(i % 3 != 2) {
+                        ellipsoidUVPositions.push(x % 1);
+                    }
+                });
                 
                 // make triangles, from south pole to middle latitudes to north pole
                 var ellipsoidTriangles = []; // triangles to return
@@ -349,7 +357,7 @@ function loadModels() {
                 ellipsoidTriangles.push(ellipsoidVertices.length/3-2,ellipsoidVertices.length/3-1,
                                         ellipsoidVertices.length/3-numLongSteps-1); // longitude wrap
             } // end if good number longitude steps
-            return({vertices:ellipsoidVertices, normals:ellipsoidNormals, triangles:ellipsoidTriangles, uvPositions: ellipsoidUVPositions});
+            return({vertices:ellipsoidVertices, normals:ellipsoidNormals, uvPositions: ellipsoidUVPositions, triangles:ellipsoidTriangles});
         } // end try
         
         catch(e) {
