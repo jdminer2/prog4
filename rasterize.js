@@ -44,6 +44,7 @@ var Center = vec3.clone(defaultCenter); // view direction in world space
 var Up = vec3.clone(defaultUp); // view up vector in world space
 
 var blendingMode = 0;
+const MAX_BLENDING_MODE = 1;
 
 // ASSIGNMENT HELPER FUNCTIONS
 
@@ -240,7 +241,7 @@ function handleKeyDown(event) {
 
         case "KeyB":
             blendingMode++;
-            if(blendingMode > 1)
+            if(blendingMode > MAX_BLENDING_MODE)
                 blendingMode = 0;
             break;
     } // end switch
