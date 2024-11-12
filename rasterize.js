@@ -433,7 +433,7 @@ function loadModels() {
                 inputTriangles[whichSet].texture = gl.createTexture();
                 const image = new Image();
                 // Make placeholder texture
-                gl.bindTexture(gl.TEXTURE_2D, texture);
+                gl.bindTexture(gl.TEXTURE_2D, inputTriangles[whichSet].texture);
                 const level=0, internalFormat=gl.RGBA, srcFormat=gl.RGBA, srcType=gl.UNSIGNED_BYTE;
                 gl.texImage2D(gl.TEXTURE_2D,level,internalFormat,1,1,0,srcFormat,srcType,new Uint8Array([0,0,0,255])); // black
                 // When correct texture loads.
