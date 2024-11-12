@@ -595,7 +595,7 @@ function setupShaders() {
             vec3 colorOut = ambient + diffuse + specular; // no specular yet
             gl_FragColor = vec4(colorOut, 1.0); 
             */
-            gl_FragColor = texture(uSampler, vUVPos);
+            gl_FragColor = texture2D(uSampler, vUVPos);
         }
     `;
     
