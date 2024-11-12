@@ -403,7 +403,7 @@ function loadModels() {
                     uvPosToAdd = inputTriangles[whichSet].uvs[whichSetVert]; // get texture pos to add
                     inputTriangles[whichSet].glVertices.push(vtxToAdd[0],vtxToAdd[1],vtxToAdd[2]); // put coords in set coord list
                     inputTriangles[whichSet].glNormals.push(normToAdd[0],normToAdd[1],normToAdd[2]); // put normal in set coord list
-                    inputTriangles[whichSet].uvPositions.push(uvPosToAdd[0],uvPosToAdd[1],uvPosToAdd[2]); // put texture poses in set coord list
+                    inputTriangles[whichSet].uvPositions.push(uvPosToAdd[0],uvPosToAdd[1]); // put texture poses in set coord list
                     vec3.max(maxCorner,maxCorner,vtxToAdd); // update world bounding box corner maxima
                     vec3.min(minCorner,minCorner,vtxToAdd); // update world bounding box corner minima
                     vec3.add(inputTriangles[whichSet].center,inputTriangles[whichSet].center,vtxToAdd); // add to ctr sum
