@@ -35,6 +35,7 @@ var ambientULoc; // where to put ambient reflecivity for fragment shader
 var diffuseULoc; // where to put diffuse reflecivity for fragment shader
 var specularULoc; // where to put specular reflecivity for fragment shader
 var shininessULoc; // where to put specular exponent for fragment shader
+var alphaULoc; // where to put alpha for fragment shader
 var samplerULoc; // where to put sampler for fragment shader
 var blendingModeULoc; // where to put blending mode for fragment shader
 
@@ -603,6 +604,7 @@ function setupShaders() {
         uniform vec3 uDiffuse; // the diffuse reflectivity
         uniform vec3 uSpecular; // the specular reflectivity
         uniform float uShininess; // the specular exponent
+        uniform float uAlpha; // the transparency
 
         uniform int blendingMode;
         uniform sampler2D uSampler; // the texture
@@ -639,6 +641,7 @@ function setupShaders() {
             } else if (blendingMode == 1) {
                 gl_FragColor = textureColor * lightingColor;
             }
+            gl_FragColor *= uAlpha;
         }
     `;
     
@@ -690,6 +693,7 @@ function setupShaders() {
                 diffuseULoc = gl.getUniformLocation(shaderProgram, "uDiffuse"); // ptr to diffuse
                 specularULoc = gl.getUniformLocation(shaderProgram, "uSpecular"); // ptr to specular
                 shininessULoc = gl.getUniformLocation(shaderProgram, "uShininess"); // ptr to shininess
+                alphaULoc = gl.getUniformLocation(shaderProgram, "uAlpha"); // ptr to alpha
                 samplerULoc = gl.getUniformLocation(shaderProgram, "uSampler"); // ptr to sampler
                 blendingModeULoc = gl.getUniformLocation(shaderProgram, "blendingMode"); // ptr to blending mode
                 
@@ -709,7 +713,16 @@ function setupShaders() {
 } // end setup shaders
 
 // render the loaded model
-function renderModels() {
+function render() {
+    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
+    gl.depthMask(true)
+    drawModels(true);
+    gl.depthMask(false)
+    drawModels(false);
+    window.requestAnimationFrame(render); // set up frame render callback
+}
+
+function drawModels(opaque) {    
     
     // construct the model transform matrix, based on model state
     function makeModelTransform(currModel) {
@@ -746,10 +759,6 @@ function renderModels() {
     var pvMatrix = mat4.create(); // hand * proj * view matrices
     var pvmMatrix = mat4.create(); // hand * proj * view * model matrices
     
-    window.requestAnimationFrame(renderModels); // set up frame render callback
-    
-    gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
-    
     // set up projection and view
     // mat4.fromScaling(hMatrix,vec3.fromValues(-1,1,1)); // create handedness matrix
     mat4.perspective(pMatrix,0.5*Math.PI,1,0.1,10); // create projection matrix
@@ -761,6 +770,8 @@ function renderModels() {
     var currSet; // the tri set and its material properties
     for (var whichTriSet=0; whichTriSet<numTriangleSets; whichTriSet++) {
         currSet = inputTriangles[whichTriSet];
+        if(opaque !== (currSet.material.alpha >= 1))
+            continue;
         
         // make model transform, add to view project
         makeModelTransform(currSet);
@@ -773,6 +784,7 @@ function renderModels() {
         gl.uniform3fv(diffuseULoc,currSet.material.diffuse); // pass in the diffuse reflectivity
         gl.uniform3fv(specularULoc,currSet.material.specular); // pass in the specular reflectivity
         gl.uniform1f(shininessULoc,currSet.material.n); // pass in the specular exponent
+        gl.uniform1f(alphaULoc,currSet.material.alpha); // pass in the transparency
         
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, currSet.textureObject);
@@ -799,6 +811,8 @@ function renderModels() {
     
     for (var whichEllipsoid=0; whichEllipsoid<numEllipsoids; whichEllipsoid++) {
         ellipsoid = inputEllipsoids[whichEllipsoid];
+        if(opaque !== (ellipsoid.alpha >= 1))
+            continue;
         
         // define model transform, premult with pvmMatrix, feed to vertex shader
         makeModelTransform(ellipsoid);
@@ -811,6 +825,7 @@ function renderModels() {
         gl.uniform3fv(diffuseULoc,ellipsoid.diffuse); // pass in the diffuse reflectivity
         gl.uniform3fv(specularULoc,ellipsoid.specular); // pass in the specular reflectivity
         gl.uniform1f(shininessULoc,ellipsoid.n); // pass in the specular exponent
+        gl.uniform1f(alphaULoc,ellipsoid.alpha); // pass in the transparency
         
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, ellipsoid.textureObject);
@@ -840,6 +855,6 @@ function main() {
   setupWebGL(); // set up the webGL environment
   loadModels(); // load in the models from tri file
   setupShaders(); // setup the webGL shaders
-  renderModels(); // draw the triangles using webGL
+  render(); // draw the triangles using webGL
   
 } // end main
