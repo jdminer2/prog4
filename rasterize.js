@@ -567,7 +567,7 @@ function setupShaders() {
         uniform vec3 uDiffuse; // the diffuse reflectivity
         uniform vec3 uSpecular; // the specular reflectivity
         uniform float uShininess; // the specular exponent
-        uniform uSampler; // the texture
+        uniform sampler2D uSampler; // the texture
         
         // geometry properties
         varying vec3 vWorldPos; // world xyz of fragment
