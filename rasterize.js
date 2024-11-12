@@ -36,11 +36,14 @@ var diffuseULoc; // where to put diffuse reflecivity for fragment shader
 var specularULoc; // where to put specular reflecivity for fragment shader
 var shininessULoc; // where to put specular exponent for fragment shader
 var samplerULoc; // where to put sampler for fragment shader
+var blendingModeULoc; // where to put blending mode for fragment shader
 
 /* interaction variables */
 var Eye = vec3.clone(defaultEye); // eye position in world space
 var Center = vec3.clone(defaultCenter); // view direction in world space
 var Up = vec3.clone(defaultUp); // view up vector in world space
+
+var blendingMode = 0;
 
 // ASSIGNMENT HELPER FUNCTIONS
 
@@ -233,6 +236,12 @@ function handleKeyDown(event) {
                 vec3.set(inputEllipsoids[whichTriSet].xAxis,1,0,0);
                 vec3.set(inputEllipsoids[whichTriSet].yAxis,0,1,0);
             } // end for all ellipsoids
+            break;
+
+        case "KeyB":
+            blendingMode++;
+            if(blendingMode > 1)
+                blendingMode = 0;
             break;
     } // end switch
 } // end handleKeyDown
@@ -593,6 +602,8 @@ function setupShaders() {
         uniform vec3 uDiffuse; // the diffuse reflectivity
         uniform vec3 uSpecular; // the specular reflectivity
         uniform float uShininess; // the specular exponent
+
+        uniform int blendingMode;
         uniform sampler2D uSampler; // the texture
         
         // geometry properties
@@ -601,7 +612,6 @@ function setupShaders() {
         varying vec2 vUVPos; // texture uv of fragment
             
         void main(void) {
-            /*
             // ambient term
             vec3 ambient = uAmbient*uLightAmbient; 
             
@@ -619,9 +629,18 @@ function setupShaders() {
             
             // combine to output color
             vec3 colorOut = ambient + diffuse + specular; // no specular yet
-            gl_FragColor = vec4(colorOut, 1.0); 
-            */
-            gl_FragColor = texture2D(uSampler, vUVPos);
+            vec4 lightingColor = vec4(colorOut, 1.0); 
+            
+            vec4 textureColor = texture2D(uSampler, vUVPos);
+
+            switch (blendingMode) {
+                case 0:
+                    gl_FragColor = textureColor;
+                    break;
+                case 1:
+                    gl_FragColor = textureColor * lightingColor;
+                    break;
+            }
         }
     `;
     
@@ -674,6 +693,7 @@ function setupShaders() {
                 specularULoc = gl.getUniformLocation(shaderProgram, "uSpecular"); // ptr to specular
                 shininessULoc = gl.getUniformLocation(shaderProgram, "uShininess"); // ptr to shininess
                 samplerULoc = gl.getUniformLocation(shaderProgram, "uSampler"); // ptr to sampler
+                blendingModeULoc = gl.getUniformLocation(shaderProgram, "blendingMode"); // ptr to blending mode
                 
                 // pass global constants into fragment uniforms
                 gl.uniform3fv(eyePositionULoc,Eye); // pass in the eye's position
@@ -759,6 +779,8 @@ function renderModels() {
         gl.activeTexture(gl.TEXTURE0);
         gl.bindTexture(gl.TEXTURE_2D, currSet.textureObject);
         gl.uniform1i(samplerULoc,0); // pass in the sampler
+
+        gl.uniform1i(blendingModeULoc,blendingMode); // pass in the blending mode
         
         // vertex buffer: activate and feed into vertex shader
         gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[whichTriSet]); // activate
