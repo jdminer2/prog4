@@ -793,7 +793,7 @@ function renderModels() {
         gl.uniform1f(shininessULoc,ellipsoid.n); // pass in the specular exponent
         
         gl.activeTexture(gl.TEXTURE0);
-        gl.bindTexture(gl.TEXTURE_2D, currSet.textureObject);
+        gl.bindTexture(gl.TEXTURE_2D, ellipsoid.textureObject);
         gl.uniform1i(samplerULoc,0); // pass in the sampler
 
         gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[numTriangleSets+whichEllipsoid]); // activate vertex buffer
