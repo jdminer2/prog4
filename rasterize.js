@@ -278,7 +278,6 @@ function setupWebGL() {
         //gl.clearColor(0.0, 0.0, 0.0, 1.0); // use black when we clear the frame buffer
         gl.clearDepth(1.0); // use max when we clear the depth buffer
         gl.enable(gl.DEPTH_TEST); // use hidden surface removal (with zbuffering)
-        gl.enable(gl.BLEND);
         gl.blendFunc(gl.SRC_COLOR, gl.DST_COLOR);
       }
     } // end try
@@ -719,9 +718,11 @@ function setupShaders() {
 // render the loaded model
 function render() {
     gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT); // clear frame/depth buffers
-    gl.depthMask(true)
+    gl.depthMask(true);
+    gl.disable(gl.BLEND);
     drawModels(true);
-    gl.depthMask(false)
+    gl.depthMask(false);
+    gl.enable(gl.BLEND);
     drawModels(false);
     window.requestAnimationFrame(render); // set up frame render callback
 }
