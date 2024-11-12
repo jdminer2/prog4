@@ -35,6 +35,7 @@ var ambientULoc; // where to put ambient reflecivity for fragment shader
 var diffuseULoc; // where to put diffuse reflecivity for fragment shader
 var specularULoc; // where to put specular reflecivity for fragment shader
 var shininessULoc; // where to put specular exponent for fragment shader
+var samplerULoc; // where to put sampler for fragment shader
 
 /* interaction variables */
 var Eye = vec3.clone(defaultEye); // eye position in world space
@@ -428,6 +429,28 @@ function loadModels() {
                     inputTriangles[whichSet].glTriangles.push(triToAdd[0],triToAdd[1],triToAdd[2]); // put indices in set list
                 } // end for triangles in set
 
+                // Create the texture object for this triangle set.
+                inputTriangles[whichSet].texture = gl.createTexture();
+                const image = new Image();
+                // Make placeholder texture
+                gl.bindTexture(gl.TEXTURE_2D, texture);
+                const level=0, internalFormat=gl.RGBA, srcFormat=gl.RGBA, srcType=gl.UNSIGNED_BYTE;
+                gl.texImage2D(gl.TEXTURE_2D,level,internalFormat,1,1,0,srcFormat,srcType,new Uint8Array([0,0,0,255])); // black
+                // When correct texture loads.
+                image.onLoad = () => {
+                    gl.bindTexture(gl.TEXTURE_2D, inputTriangles[whichSet].texture);
+                    gl.texImage2D(gl.TEXTURE_2D,level,internalFormat,srcFormat,srcType,image);
+                    if (isPowerOf2(image.width) && isPowerOf2(image.height)) {
+                        gl.generateMipmap(gl.TEXTURE_2D);
+                    } else {
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+                        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+                    }
+                };
+                image.src = inputTriangles[whichSet].material.texture;
+                gl.pixelStorei(gl.UNPACK_FLIP_Y_WEBGL, true);
+
                 // send the triangle indices to webGL
                 triangleBuffers.push(gl.createBuffer()); // init empty triangle index buffer
                 gl.bindBuffer(gl.ELEMENT_ARRAY_BUFFER, triangleBuffers[whichSet]); // activate that buffer
@@ -544,13 +567,12 @@ function setupShaders() {
         uniform vec3 uDiffuse; // the diffuse reflectivity
         uniform vec3 uSpecular; // the specular reflectivity
         uniform float uShininess; // the specular exponent
+        uniform uSampler; // the texture
         
         // geometry properties
         varying vec3 vWorldPos; // world xyz of fragment
         varying vec3 vVertexNormal; // normal of fragment
         varying vec2 vUVPos; // texture uv of fragment
-        
-        uniform uSampler;
             
         void main(void) {
             /*
@@ -625,6 +647,7 @@ function setupShaders() {
                 diffuseULoc = gl.getUniformLocation(shaderProgram, "uDiffuse"); // ptr to diffuse
                 specularULoc = gl.getUniformLocation(shaderProgram, "uSpecular"); // ptr to specular
                 shininessULoc = gl.getUniformLocation(shaderProgram, "uShininess"); // ptr to shininess
+                samplerULoc = gl.getUniformLocation(shaderProgram, "uSampler"); // ptr to sampler
                 
                 // pass global constants into fragment uniforms
                 gl.uniform3fv(eyePositionULoc,Eye); // pass in the eye's position
@@ -707,6 +730,10 @@ function renderModels() {
         gl.uniform3fv(specularULoc,currSet.material.specular); // pass in the specular reflectivity
         gl.uniform1f(shininessULoc,currSet.material.n); // pass in the specular exponent
         
+        gl.activeTexture(gl.TEXTURE0);
+        gl.bindTexture(gl.TEXTURE_2D, currSet.texture);
+        gl.uniform1i(samplerULoc,0); // pass in the sampler
+        
         // vertex buffer: activate and feed into vertex shader
         gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[whichTriSet]); // activate
         gl.vertexAttribPointer(vPosAttribLoc,3,gl.FLOAT,false,0,0); // feed
@@ -738,6 +765,7 @@ function renderModels() {
         gl.uniform3fv(diffuseULoc,ellipsoid.diffuse); // pass in the diffuse reflectivity
         gl.uniform3fv(specularULoc,ellipsoid.specular); // pass in the specular reflectivity
         gl.uniform1f(shininessULoc,ellipsoid.n); // pass in the specular exponent
+        gl.uniform1i(samplerULoc,currSet.material.texture); // pass in the sampler
 
         gl.bindBuffer(gl.ARRAY_BUFFER,vertexBuffers[numTriangleSets+whichEllipsoid]); // activate vertex buffer
         gl.vertexAttribPointer(vPosAttribLoc,3,gl.FLOAT,false,0,0); // feed vertex buffer to shader
@@ -752,6 +780,9 @@ function renderModels() {
     } // end for each ellipsoid
 } // end render model
 
+function isPowerOf2(value) {
+    return (value&(value-1))===0;
+}
 
 /* MAIN -- HERE is where execution begins after window load */
 
