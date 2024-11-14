@@ -38,7 +38,6 @@ var shininessULoc; // where to put specular exponent for fragment shader
 var alphaULoc; // where to put alpha for fragment shader
 var samplerULoc; // where to put sampler for fragment shader
 var blendingModeULoc; // where to put blending mode for fragment shader
-var floatTimeULoc; // where to put floatTime for fragment shader
 
 /* interaction variables */
 var Eye = vec3.clone(defaultEye); // eye position in world space
@@ -248,7 +247,7 @@ function handleKeyDown(event) {
             if(blendingMode > MAX_BLENDING_MODE)
                 blendingMode = 0;
             break;
-        case "Digit1:
+        case "Digit1":
             if (event.getModifierState("Shift"))
                 floatAway = true;
             break;
