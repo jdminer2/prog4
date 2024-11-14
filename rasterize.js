@@ -614,7 +614,6 @@ function setupShaders() {
         uniform float uAlpha; // the transparency
 
         uniform int blendingMode;
-        uniform int floatTime;
         uniform sampler2D uSampler; // the texture
         
         // geometry properties
