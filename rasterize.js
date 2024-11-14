@@ -38,6 +38,7 @@ var shininessULoc; // where to put specular exponent for fragment shader
 var alphaULoc; // where to put alpha for fragment shader
 var samplerULoc; // where to put sampler for fragment shader
 var blendingModeULoc; // where to put blending mode for fragment shader
+var floatTimeULoc; // where to put floatTime for fragment shader
 
 /* interaction variables */
 var Eye = vec3.clone(defaultEye); // eye position in world space
@@ -45,6 +46,8 @@ var Center = vec3.clone(defaultCenter); // view direction in world space
 var Up = vec3.clone(defaultUp); // view up vector in world space
 
 var blendingMode = 0;
+var floatAway = false;
+var floatTime = 0;
 const MAX_BLENDING_MODE = 2;
 
 // ASSIGNMENT HELPER FUNCTIONS
@@ -244,6 +247,10 @@ function handleKeyDown(event) {
             blendingMode++;
             if(blendingMode > MAX_BLENDING_MODE)
                 blendingMode = 0;
+            break;
+        case "Digit1:
+            if (event.getModifierState("Shift"))
+                floatAway = true;
             break;
     } // end switch
 } // end handleKeyDown
@@ -608,6 +615,7 @@ function setupShaders() {
         uniform float uAlpha; // the transparency
 
         uniform int blendingMode;
+        uniform int floatTime;
         uniform sampler2D uSampler; // the texture
         
         // geometry properties
@@ -754,7 +762,6 @@ function drawModels(opaque) {
 
         // translate model to current interactive orientation
         mat4.multiply(mMatrix,mat4.fromTranslation(temp,currModel.translation),mMatrix); // T(pos)*T(ctr)*R(ax)*S(1.2)*T(-ctr)
-        
     } // end make model transform
     
     // var hMatrix = mat4.create(); // handedness matrix
@@ -770,6 +777,21 @@ function drawModels(opaque) {
     mat4.lookAt(vMatrix,Eye,Center,Up); // create view matrix
     mat4.multiply(pvMatrix,pvMatrix,pMatrix); // projection
     mat4.multiply(pvMatrix,pvMatrix,vMatrix); // projection * view
+
+    if(floatAway) {
+        let i = 0;
+        inputTriangles.forEach((triangleSet) => {
+            const offset = vec3.fromValues(0,1,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
+            vec3.add(triangleSet.translation,triangleSet.translation,offset);
+            i++;
+        });
+        inputEllipsoids.forEach((ellipsoid) => {
+            const offset = vec3.fromValues(0,1,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
+            vec3.add(ellipsoid.translation,ellipsoid.translation,offset);
+            i++;
+        });
+        floatTime++;
+    }
 
     // render each triangle set
     var currSet; // the tri set and its material properties
