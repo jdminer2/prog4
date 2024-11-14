@@ -780,12 +780,12 @@ function drawModels(opaque) {
     if(floatAway) {
         let i = 0;
         inputTriangles.forEach((triangleSet) => {
-            const offset = vec3.fromValues(0,1,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
+            const offset = vec3.fromValues(0,1/1000,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
             vec3.add(triangleSet.translation,triangleSet.translation,offset);
             i++;
         });
         inputEllipsoids.forEach((ellipsoid) => {
-            const offset = vec3.fromValues(0,1,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
+            const offset = vec3.fromValues(0,1/1000,Math.sin((floatTime+1)/100+i)-Math.sin(floatTime/100+i));
             vec3.add(ellipsoid.translation,ellipsoid.translation,offset);
             i++;
         });
