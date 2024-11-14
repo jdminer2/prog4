@@ -760,6 +760,7 @@ function drawModels(opaque) {
 
         // translate model to current interactive orientation
         mat4.multiply(mMatrix,mat4.fromTranslation(temp,currModel.translation),mMatrix); // T(pos)*T(ctr)*R(ax)*S(1.2)*T(-ctr)
+        
     } // end make model transform
     
     // var hMatrix = mat4.create(); // handedness matrix
